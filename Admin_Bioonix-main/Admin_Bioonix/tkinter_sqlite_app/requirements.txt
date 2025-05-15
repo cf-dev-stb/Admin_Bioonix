@@ -1,0 +1,3 @@
+tkinter_sqlite_app/tkinter_sqlite_app/requirements.txt
+tkinter
+sqlite3
