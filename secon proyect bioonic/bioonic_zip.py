@@ -8,11 +8,23 @@ import threading
 from datetime import datetime, timedelta
 
 # --- Rutas de archivos ---
+# Definimos las rutas de los archivos JSON que almacenan información persistente:
+# - HISTORIAL_PATH: Guarda el historial de respaldos realizados.
+# - CREDENCIALES_PATH: Contiene las credenciales de los usuarios.
+# - PROGRAMADOS_PATH: Almacena los respaldos programados.
 HISTORIAL_PATH = "historial_respaldo.json"
 CREDENCIALES_PATH = "credenciales.json"
 PROGRAMADOS_PATH = "respaldos_programados.json"
 
 # --- Colores tecnológicos ---
+# Paleta de colores utilizada en la interfaz gráfica:
+# - COLOR_BG: Fondo principal de la ventana.
+# - COLOR_PANEL: Fondo de los paneles.
+# - COLOR_BTN: Fondo de los botones.
+# - COLOR_BTN_TXT: Texto de los botones.
+# - COLOR_ENTRY: Fondo de los campos de entrada.
+# - COLOR_LIST: Fondo de los listbox.
+# - COLOR_LIST_TXT: Texto de los listbox.
 COLOR_BG = "#1a2238"        # Azul marino oscuro
 COLOR_PANEL = "#283655"     # Azul marino medio
 COLOR_BTN = "#21a1ff"       # Azul claro
@@ -22,6 +34,11 @@ COLOR_LIST = "#f5f6fa"      # Fondo Listbox
 COLOR_LIST_TXT = "#222831"  # Texto Listbox
 
 # --- Manejo de credenciales y roles ---
+# Funciones para gestionar las credenciales de los usuarios:
+# - cargar_credenciales: Carga las credenciales desde el archivo JSON o crea un admin por defecto.
+# - guardar_credenciales: Añade un nuevo usuario con su contraseña y rol.
+# - eliminar_usuario: Elimina un usuario, excepto el admin.
+# - obtener_rol: Devuelve el rol de un usuario específico.
 def cargar_credenciales():
     # Si no existe, crea el admin por defecto
     if not os.path.exists(CREDENCIALES_PATH):
@@ -54,6 +71,9 @@ def obtener_rol(usuario):
     return "usuario"
 
 # --- Historial ---
+# Funciones para gestionar el historial de respaldos realizados:
+# - agregar_a_historial: Añade un nuevo respaldo al historial.
+# - cargar_historial: Carga el historial desde el archivo JSON.
 def agregar_a_historial(usuario, archivos, destino):
     historial = []
     if os.path.exists(HISTORIAL_PATH):
@@ -75,6 +95,12 @@ def cargar_historial():
     return []
 
 # --- Programados ---
+# Funciones para gestionar los respaldos programados:
+# - cargar_programados: Carga los respaldos programados desde el archivo JSON.
+# - guardar_programados: Guarda la lista de respaldos programados en el archivo JSON.
+# - agregar_programado: Añade un nuevo respaldo programado.
+# - eliminar_programado: Elimina un respaldo programado por índice.
+# - editar_programado: Edita un respaldo programado por índice.
 def cargar_programados():
     if os.path.exists(PROGRAMADOS_PATH):
         with open(PROGRAMADOS_PATH, "r") as f:
@@ -103,6 +129,8 @@ def editar_programado(idx, hora, archivos, destino):
         guardar_programados(lista)
 
 # --- Respaldo ZIP ---
+# Función para crear un archivo ZIP con los archivos o carpetas seleccionados:
+# - crear_respaldo_zip: Comprime los archivos y carpetas en un archivo ZIP en la ruta especificada.
 def crear_respaldo_zip(archivos_a_resguardar, destino):
     with zipfile.ZipFile(destino, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for archivo in archivos_a_resguardar:
@@ -117,6 +145,8 @@ def crear_respaldo_zip(archivos_a_resguardar, destino):
     return destino
 
 # --- Hilo para respaldos programados ---
+# Función que ejecuta respaldos programados en un hilo separado:
+# - hilo_programados: Verifica los respaldos programados y los ejecuta en el momento indicado.
 def hilo_programados(usuario):
     def tarea():
         while True:
@@ -140,9 +170,11 @@ def hilo_programados(usuario):
     threading.Thread(target=tarea, daemon=True).start()
 
 # --- Interfaz gráfica ---
-
+# Clase principal para la interfaz gráfica:
+# - App: Gestiona las ventanas y funcionalidades de la aplicación.
 class App:
     def __init__(self, root):
+        # Inicializa la ventana principal y muestra la pantalla de login.
         self.root = root
         self.usuario = None
         self.credenciales = cargar_credenciales()
@@ -153,6 +185,7 @@ class App:
         self.mostrar_login()
 
     def mostrar_login(self):
+        # Muestra la pantalla de inicio de sesión.
         for widget in self.root.winfo_children():
             widget.destroy()
         # Panel más ancho y alto
@@ -183,6 +216,7 @@ class App:
         btn_reg.pack(side="left", padx=24)
 
     def login(self):
+        # Verifica las credenciales y muestra la pantalla principal si son correctas.
         usuario = self.entry_usuario.get().strip()
         contrasena = self.entry_contrasena.get().strip()
         cred = cargar_credenciales()
@@ -195,6 +229,7 @@ class App:
             messagebox.showerror("Error", "Usuario o contraseña incorrectos.")
 
     def registrarse(self):
+        # Registra un nuevo usuario si no existe.
         usuario = self.entry_usuario.get().strip()
         contrasena = self.entry_contrasena.get().strip()
         cred = cargar_credenciales()
@@ -208,6 +243,7 @@ class App:
         messagebox.showinfo("Registrado", "Usuario registrado correctamente. Ahora puedes iniciar sesión.")
 
     def mostrar_principal(self):
+        # Muestra la pantalla principal con opciones de respaldo y gestión.
         for widget in self.root.winfo_children():
             widget.destroy()
 
@@ -261,6 +297,7 @@ class App:
         btn_volver.pack(side="left", padx=14)
 
     def actualizar_listbox(self):
+        # Actualiza el contenido del listbox con el historial y los respaldos programados.
         self.listbox.delete(0, tk.END)
         historial = cargar_historial()
         programados = cargar_programados()
@@ -273,6 +310,7 @@ class App:
             self.listbox.insert(tk.END, f"{p['hora']} | {os.path.basename(p['destino'])} | Archivos: {', '.join([os.path.basename(a) for a in p['archivos']])}")
 
     def descargar_respaldo(self):
+        # Permite al usuario seleccionar archivos o carpetas para crear un respaldo ZIP.
         tipo = simpledialog.askstring("Tipo", "¿Qué deseas respaldar? (Archivos/Carpeta)").strip().lower()
         archivos_a_resguardar = []
         if tipo == "archivos":
@@ -295,6 +333,7 @@ class App:
             self.actualizar_listbox()
 
     def agregar_programado_dialogo(self):
+        # Muestra un diálogo para agregar un respaldo programado.
         hora = simpledialog.askstring("Hora de respaldo", "¿A qué hora diaria? (formato 24h, ej: 15:30)")
         if not hora:
             return
@@ -309,6 +348,7 @@ class App:
         self.actualizar_listbox()
 
     def editar_programado_dialogo(self):
+        # Muestra un diálogo para editar un respaldo programado existente.
         idx = self.listbox.curselection()
         programados = cargar_programados()
         if not idx or idx[0] < self.listbox.get(0, tk.END).index("=== RESPALDOS PROGRAMADOS ===") + 1:
@@ -333,6 +373,7 @@ class App:
         self.actualizar_listbox()
 
     def eliminar_programado_dialogo(self):
+        # Muestra un diálogo para eliminar un respaldo programado.
         idx = self.listbox.curselection()
         programados = cargar_programados()
         if not idx or idx[0] < self.listbox.get(0, tk.END).index("=== RESPALDOS PROGRAMADOS ===") + 1:
@@ -347,6 +388,7 @@ class App:
         self.actualizar_listbox()
 
     def gestionar_usuarios(self):
+        # Muestra una ventana para gestionar usuarios (solo para administradores).
         ventana = tk.Toplevel(self.root)
         ventana.title("Gestión de usuarios")
         ventana.configure(bg=COLOR_PANEL)
@@ -372,6 +414,8 @@ class App:
         btn_eliminar.pack(pady=10)
 
 # --- Lanzar la app ---
+# Punto de entrada de la aplicación:
+# - Crea la ventana principal y lanza la interfaz gráfica.
 if __name__ == "__main__":
     root = tk.Tk()
     app = App(root)
