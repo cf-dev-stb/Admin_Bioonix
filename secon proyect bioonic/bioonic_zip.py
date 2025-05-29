@@ -74,24 +74,51 @@ def obtener_rol(usuario):
 # Funciones para gestionar el historial de respaldos realizados:
 # - agregar_a_historial: Añade un nuevo respaldo al historial.
 # - cargar_historial: Carga el historial desde el archivo JSON.
-def agregar_a_historial(usuario, archivos, destino):
+def agregar_a_historial(usuario, archivos, destino, accion_por=None):
     historial = []
     if os.path.exists(HISTORIAL_PATH):
         with open(HISTORIAL_PATH, "r") as f:
             historial = json.load(f)
-    historial.append({
-        "usuario": usuario,
-        "archivos": archivos,
-        "destino": destino,
-        "fecha": time.strftime("%Y-%m-%d %H:%M:%S")
-    })
+    # Añadimos más detalles si el usuario es admin
+    if usuario == "admin":
+        detalle_archivos = [os.path.abspath(a) for a in archivos]
+        historial.append({
+            "usuario": usuario,
+            "archivos": detalle_archivos,
+            "destino": os.path.abspath(destino),
+            "fecha": time.strftime("%Y-%m-%d %H:%M:%S"),
+            "accion_por": accion_por if accion_por else "Administrador",
+            "detalles": "Respaldo realizado por el administrador con detalles completos."
+        })
+    else:
+        historial.append({
+            "usuario": usuario,
+            "archivos": archivos,
+            "destino": destino,
+            "fecha": time.strftime("%Y-%m-%d %H:%M:%S")
+        })
     with open(HISTORIAL_PATH, "w") as f:
         json.dump(historial, f, indent=4)
 
-def cargar_historial():
+def cargar_historial_para_admin():
+    # Carga el historial completo, incluyendo detalles adicionales para el administrador
     if os.path.exists(HISTORIAL_PATH):
         with open(HISTORIAL_PATH, "r") as f:
             return json.load(f)
+    return []
+
+def cargar_historial_para_usuario():
+    # Carga el historial sin detalles adicionales para usuarios normales
+    if os.path.exists(HISTORIAL_PATH):
+        with open(HISTORIAL_PATH, "r") as f:
+            historial = json.load(f)
+        # Filtrar detalles adicionales
+        for h in historial:
+            if "accion_por" in h:
+                del h["accion_por"]
+            if "detalles" in h:
+                del h["detalles"]
+        return historial
     return []
 
 # --- Programados ---
@@ -299,11 +326,18 @@ class App:
     def actualizar_listbox(self):
         # Actualiza el contenido del listbox con el historial y los respaldos programados.
         self.listbox.delete(0, tk.END)
-        historial = cargar_historial()
+        if self.usuario == "admin":
+            historial = cargar_historial_para_admin()
+        else:
+            historial = cargar_historial_para_usuario()
         programados = cargar_programados()
+
         self.listbox.insert(tk.END, "=== HISTORIAL DE RESPALDOS ===")
         for h in historial[::-1]:
-            self.listbox.insert(tk.END, f"{h['fecha']} | {os.path.basename(h['destino'])} | Archivos: {', '.join([os.path.basename(a) for a in h['archivos']])}")
+            if self.usuario == "admin":
+                self.listbox.insert(tk.END, f"{h['fecha']} | {os.path.basename(h['destino'])} | Archivos: {', '.join([os.path.basename(a) for a in h['archivos']])} | Realizado por: {h.get('accion_por', 'N/A')}")
+            else:
+                self.listbox.insert(tk.END, f"{h['fecha']} | {os.path.basename(h['destino'])} | Archivos: {', '.join([os.path.basename(a) for a in h['archivos']])}")
         self.listbox.insert(tk.END, "")
         self.listbox.insert(tk.END, "=== RESPALDOS PROGRAMADOS ===")
         for i, p in enumerate(programados):
