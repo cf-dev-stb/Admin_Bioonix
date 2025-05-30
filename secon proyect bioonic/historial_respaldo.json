@@ -14,5 +14,23 @@
         ],
         "destino": "C:/Users/Admin/OneDrive/Escritorio/Tor.zip",
         "fecha": "2025-05-29 18:00:31"
+    },
+    {
+        "usuario": "oswaldobello",
+        "archivos": [
+            "C:/Users/Admin/AppData/Local/GitHubDesktop/GitHubDesktop.exe"
+        ],
+        "destino": "C:/Users/Admin/OneDrive/Escritorio/Negro te queremos.zip",
+        "fecha": "2025-05-29 18:58:58"
+    },
+    {
+        "usuario": "admin",
+        "archivos": [
+            "C:\\Program Files\\LDraw (64 Bit)\\LDView\\LDView64.exe"
+        ],
+        "destino": "C:\\Users\\Admin\\OneDrive\\Escritorio\\respaldo.zip",
+        "fecha": "2025-05-29 19:10:50",
+        "accion_por": "Administrador",
+        "detalles": "Respaldo realizado por el administrador con detalles completos."
     }
 ]

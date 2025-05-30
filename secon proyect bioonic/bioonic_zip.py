@@ -334,10 +334,8 @@ class App:
 
         self.listbox.insert(tk.END, "=== HISTORIAL DE RESPALDOS ===")
         for h in historial[::-1]:
-            if self.usuario == "admin":
-                self.listbox.insert(tk.END, f"{h['fecha']} | {os.path.basename(h['destino'])} | Archivos: {', '.join([os.path.basename(a) for a in h['archivos']])} | Realizado por: {h.get('accion_por', 'N/A')}")
-            else:
-                self.listbox.insert(tk.END, f"{h['fecha']} | {os.path.basename(h['destino'])} | Archivos: {', '.join([os.path.basename(a) for a in h['archivos']])}")
+            realizado_por = f" | Realizado por: {h['accion_por']}" if 'accion_por' in h else ""
+            self.listbox.insert(tk.END, f"{h['fecha']} | {os.path.basename(h['destino'])} | Archivos: {', '.join([os.path.basename(a) for a in h['archivos']])} | Usuario: {h['usuario']}{realizado_por}")
         self.listbox.insert(tk.END, "")
         self.listbox.insert(tk.END, "=== RESPALDOS PROGRAMADOS ===")
         for i, p in enumerate(programados):
